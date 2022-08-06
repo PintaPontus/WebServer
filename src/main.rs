@@ -1,11 +1,12 @@
-use std::thread;
+#[macro_use] extern crate rocket;
 
-use server::Server;
+mod home_controller;
 
-mod server;
-
-fn main() {
-    println!("Server started!");
-    let server = Server::start("127.0.0.1:80");
-    server.handle.join().unwrap();
+//noinspection RsMainFunctionNotFound
+#[launch]
+fn rocket() -> _ {
+    rocket::build().mount("/", routes![
+        home_controller::index,
+        home_controller::files
+    ])
 }
