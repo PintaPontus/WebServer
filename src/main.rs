@@ -1,12 +1,26 @@
-#[macro_use] extern crate rocket;
+#[macro_use]
+extern crate rocket;
 
-mod home_controller;
+use rocket_db_pools::{Database, Connection};
+use rocket_db_pools::mongodb::{self, Client};
+use mongodb::bson::doc;
 
-//noinspection RsMainFunctionNotFound
+#[derive(Database)]
+#[database("mongodb")]
+struct Logs(mongodb::Client);
+
+#[get("/<id>")]
+async fn read(mut db: Connection<Logs>, id: i64) -> Option<String> {
+    mongodb::query("\"_id\": {\"$oid\": \"62efe55512fee4efeb7a07c0\"}")
+    .bind(id)
+    .fetch_one(&mut *db).await
+    .and_then(|r| Ok(Log(r.try_get(0)?)))
+    .ok();
+
+    Option::Some("Ciao".parse().unwrap())
+}
+
 #[launch]
 fn rocket() -> _ {
-    rocket::build().mount("/", routes![
-        home_controller::index,
-        home_controller::files
-    ])
+    rocket::build().attach(Logs::init()).mount("/", routes![read])
 }
